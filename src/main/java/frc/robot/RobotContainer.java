@@ -1,13 +1,16 @@
 package frc.robot;
 
-import java.io.IOException;
-
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+
+import java.io.IOException;
+
+import edu.wpi.first.math.trajectory.Trajectory;
 
 import frc.robot.autos.*;
 import frc.robot.commands.*;
@@ -27,26 +30,24 @@ public class RobotContainer {
     private final int translationAxis = XboxController.Axis.kRightY.value;
     private final int strafeAxis = XboxController.Axis.kRightX.value;
     private final int rotationAxis = XboxController.Axis.kLeftX.value;
-    private double coefficient = 1.0;
+    public static double speedCoefficient = 1.0;
 
     /* Driver Buttons */
-    private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
-    private final JoystickButton robotCentric = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
+    private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kX.value);
+    private final JoystickButton robotCentric = new JoystickButton(driver, XboxController.Button.kA.value);
+    private final JoystickButton increaseSpeed = new JoystickButton(driver, XboxController.Button.kRightBumper.value);
+    private final JoystickButton decreaseSpeed = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
+    private final JoystickButton runTrajectory = new JoystickButton(driver, XboxController.Button.kY.value);
+
 
     /* Subsystems */
     private final Swerve s_Swerve = new Swerve();
     private Vision vision;
 
 
-    /** The container for the robot. Contains subsystems, OI devices, and commands. */
-    public RobotContainer() {
-        try {
-            vision = new Vision();
-        } catch (IOException e) {
-            throw new RuntimeException(e); 
-        }
-
-        s_Swerve.zeroGyro();
+    /** The container for the robot. Contains subsystems, OI devices, and commands. 
+     * @throws IOException*/
+    public RobotContainer() throws IOException {
         s_Swerve.setDefaultCommand(
             new TeleopSwerve(
                 s_Swerve, 
@@ -57,6 +58,7 @@ public class RobotContainer {
             )
         );
 
+        vision = new Vision();
         // Configure the button bindings
         configureButtonBindings();
     }
@@ -70,7 +72,20 @@ public class RobotContainer {
     private void configureButtonBindings() {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
+        increaseSpeed.onTrue(new InstantCommand(() -> s_Swerve.increaseSpeed()));
+        decreaseSpeed.onTrue(new InstantCommand(() -> s_Swerve.decreaseSpeed()));
+        runTrajectory.onTrue(new InstantCommand(() -> {
+            var toTargetTrajectory = vision.getTrajectory(Constants.Trajectory.CONFIG, Constants.Trajectory.COEFFICIENT);
+            if (toTargetTrajectory.isEmpty()) {
+                DriverStation.reportWarning("Unable to generate trajectory", false);
+                return;
+            }
+            System.out.println("Has trajectory");
+            
+            new MoveToPosition(s_Swerve, toTargetTrajectory.get());
+        }));
     }
+    
 
     /**
      * Use this to pass the autonomous command to the main {@link Robot} class.
@@ -79,6 +94,6 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         // An ExampleCommand will run in autonomous
-        return new exampleAuto(s_Swerve, vision);
+        return new exampleAuto(s_Swerve);
     }
 }

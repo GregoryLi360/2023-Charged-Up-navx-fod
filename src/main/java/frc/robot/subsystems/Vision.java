@@ -15,12 +15,16 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -46,7 +50,7 @@ public class Vision extends SubsystemBase {
         );
     }
 
-    public Optional<Transform3d> get() {
+    public Optional<Transform3d> getTransform() {
         var result = camera.getLatestResult();
         if (!result.hasTargets()) {
             System.out.println("No targets\n");
@@ -70,5 +74,26 @@ public class Vision extends SubsystemBase {
         return Optional.of(target.getBestCameraToTarget());
     
 
+    }
+
+    public Optional<Trajectory> getTrajectory(TrajectoryConfig config, double coefficient) {
+        var res = this.getTransform();
+        if (res.isEmpty()) {
+            DriverStation.reportWarning("No vision targets in range", false);
+            return Optional.empty();
+        }
+
+        Transform3d transform = res.get();
+        Translation2d end = transform.getTranslation().toTranslation2d().minus(new Translation2d(0.5, 0)).times(coefficient);
+
+        /* Pose2d start, List<Translation2D> pathPoints, Pose2d end, config */
+        return Optional.of(TrajectoryGenerator.generateTrajectory(
+            new Pose2d(0, 0, new Rotation2d(0)),
+            List.of(end.div(2)),
+            new Pose2d(end, transform.getRotation().toRotation2d().times(-1)),
+            config
+        ));
+
+        
     }
 }

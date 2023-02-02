@@ -16,6 +16,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.SPI;
@@ -24,7 +25,7 @@ import frc.lib.util.SwerveModuleConstants;
 
 public final class Constants {
     public static final double stickDeadband = 0.1;
-
+    
     public static class VisionConstants {
         public static final String CAMERA_NAME = "Limelight1";
 
@@ -192,5 +193,15 @@ public final class Constants {
         public static final TrapezoidProfile.Constraints kThetaControllerConstraints =
             new TrapezoidProfile.Constraints(
                 kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
+    }
+
+    public static final class Trajectory {
+        public static final TrajectoryConfig CONFIG = new TrajectoryConfig(
+            Constants.AutoConstants.kMaxSpeedMetersPerSecond,
+            Constants.AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+                .setKinematics(Constants.Swerve.swerveKinematics
+        );
+
+        public static final double COEFFICIENT = 1.2;
     }
 }
