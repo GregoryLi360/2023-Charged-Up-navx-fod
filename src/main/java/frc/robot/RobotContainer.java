@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
@@ -74,16 +75,7 @@ public class RobotContainer {
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
         increaseSpeed.onTrue(new InstantCommand(() -> s_Swerve.increaseSpeed()));
         decreaseSpeed.onTrue(new InstantCommand(() -> s_Swerve.decreaseSpeed()));
-        runTrajectory.onTrue(new InstantCommand(() -> {
-            var toTargetTrajectory = vision.getTrajectory(Constants.Trajectory.CONFIG, Constants.Trajectory.COEFFICIENT);
-            if (toTargetTrajectory.isEmpty()) {
-                DriverStation.reportWarning("Unable to generate trajectory", false);
-                return;
-            }
-            System.out.println("Has trajectory");
-            
-            new MoveToPosition(s_Swerve, toTargetTrajectory.get());
-        }));
+        runTrajectory.onTrue(new MoveToPosition(s_Swerve, vision));
     }
     
 

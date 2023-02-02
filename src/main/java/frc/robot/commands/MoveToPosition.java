@@ -2,7 +2,7 @@ package frc.robot.commands;
 
 import frc.robot.Constants;
 import frc.robot.subsystems.Swerve;
-
+import frc.robot.subsystems.Vision;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.wpilibj.DriverStation;
 
 
 
@@ -23,14 +24,13 @@ public class MoveToPosition extends CommandBase {
     // Main defines;
 
     Swerve s_Swerve;
+    Vision vision;
 
-    Trajectory teleopTrajectory;
-
-    public MoveToPosition(Swerve s_Swerve, Trajectory teleopTrajectory) {
+    public MoveToPosition(Swerve s_Swerve, Vision vision) {
         this.s_Swerve = s_Swerve;
+        this.vision = vision;
         // Use addRequirements() here to declare subsystem dependencies.
-        addRequirements(s_Swerve);
-        this.teleopTrajectory = teleopTrajectory;
+        addRequirements(s_Swerve, vision);
     }
 
 
@@ -41,6 +41,16 @@ public class MoveToPosition extends CommandBase {
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
+        System.out.println("Waiting for trajectory");
+        
+        var toTargetTrajectory = vision.getTrajectory(Constants.Trajectory.CONFIG, Constants.Trajectory.COEFFICIENT);
+        if (toTargetTrajectory.isEmpty()) {
+            DriverStation.reportWarning("Unable to generate trajectory", false);
+            return;
+        }
+        System.out.println("Has trajectory");
+        Trajectory teleopTrajectory = toTargetTrajectory.get();
+
         System.out.println("Running Teleop Trajectory.");
 
         var thetaController =
@@ -59,7 +69,7 @@ public class MoveToPosition extends CommandBase {
                 s_Swerve::setModuleStates,
                 s_Swerve);
         
-        Commands.sequence(new InstantCommand(() -> s_Swerve.resetOdometry(teleopTrajectory.getInitialPose())), swerveControllerCommand);
+        new InstantCommand(() -> swerveControllerCommand.execute());
     }
 
     // Called once the command ends or is interrupted.
