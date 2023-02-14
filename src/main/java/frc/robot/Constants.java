@@ -34,7 +34,7 @@ public final class Constants {
         public static final double CAMERA_PITCH_RADIANS = Math.toRadians(0);
 
         public static final Transform3d ROBOT_TO_CAMERA = new Transform3d(
-            new Translation3d(0, 0, 0), 
+            new Translation3d(Units.inchesToMeters(14.25), 0, 0), 
             new Rotation3d(0, 0, 0)
         );
 
@@ -65,7 +65,6 @@ public final class Constants {
     public static final class Swerve {
         public static final SPI.Port navXID = SPI.Port.kMXP;
         public static final boolean invertGyro = true; // Always ensure Gyro is CCW+ CW-
-
         public static final COTSFalconSwerveConstants chosenModule = 
             COTSFalconSwerveConstants.SDSMK4i(COTSFalconSwerveConstants.driveGearRatios.SDSMK4i_L1);
 
@@ -123,9 +122,9 @@ public final class Constants {
 
         /* Drive Motor Characterization Values 
          * Divide SYSID values by 12 to convert from volts to percent output for CTRE */
-        public static final double driveKS = (0.15573/12); //TODO: This must be tuned to specific robot
-        public static final double driveKV = (0.83828/12);
-        public static final double driveKA = (0.072907/12);
+        public static final double driveKS = (0.17456/12); //TODO: This must be tuned to specific robot
+        public static final double driveKV = (0.81948/12);
+        public static final double driveKA = (0.076459/12);
 
         /* Swerve Profiling Values */
         /** Meters per Second */

@@ -5,11 +5,21 @@ import frc.robot.subsystems.Swerve;
 import frc.robot.subsystems.Vision;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+
+import java.util.List;
+
+import org.photonvision.targeting.PhotonTrackedTarget;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj.DriverStation;
 
 
@@ -33,25 +43,37 @@ public class MoveToPosition extends CommandBase {
         addRequirements(s_Swerve, vision);
     }
 
-
-    // Called when the command is initially scheduled.
     @Override
     public void initialize() {}
-
-    // Called every time the scheduler runs while the command is scheduled.
+    
     @Override
     public void execute() {
-        System.out.println("Waiting for trajectory");
+        // System.out.println("Waiting for trajectory");
         
-        var toTargetTrajectory = vision.getTrajectory(Constants.Trajectory.CONFIG, Constants.Trajectory.COEFFICIENT);
-        if (toTargetTrajectory.isEmpty()) {
-            DriverStation.reportWarning("Unable to generate trajectory", false);
-            return;
-        }
-        System.out.println("Has trajectory");
-        Trajectory teleopTrajectory = toTargetTrajectory.get();
+        // var optionalTarget = vision.getTarget();
+        // if (optionalTarget.isEmpty()) {
+        //     return;
+        // }
+        // PhotonTrackedTarget target = optionalTarget.get();
+        
+        // var toTargetTrajectory = vision.getTrajectory(target);
+        // if (toTargetTrajectory.isEmpty()) {
+        //     System.err.println("Unable to generate trajectory");
+        //     return;
+        // }
 
+        // System.out.println("Has trajectory");
+        // Trajectory teleopTrajectory = toTargetTrajectory.get();
+
+        
         System.out.println("Running Teleop Trajectory.");
+
+        Trajectory teleopTrajectory = TrajectoryGenerator.generateTrajectory(
+            new Pose2d(0, 0 ,new Rotation2d(0, 0)),
+            List.of(new Translation2d(0, 0)),
+            new Pose2d(0, 0, new Rotation2d(Math.PI)),
+            Constants.Trajectory.CONFIG
+        );
 
         var thetaController =
             new ProfiledPIDController(
@@ -68,19 +90,7 @@ public class MoveToPosition extends CommandBase {
                 thetaController,
                 s_Swerve::setModuleStates,
                 s_Swerve);
-        
-        new InstantCommand(() -> swerveControllerCommand.execute());
-    }
-
-    // Called once the command ends or is interrupted.
-    @Override
-    public void end(boolean interrupted) {}
-
-    // Returns true when the command should end.
-    @Override
-    public boolean isFinished() {
-
-        // Check if the trajectory is complete
-        return true;
+        s_Swerve.resetOdometry(teleopTrajectory.getInitialPose());
+        swerveControllerCommand.schedule();
     }
 }

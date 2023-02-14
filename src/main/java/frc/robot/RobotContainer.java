@@ -11,8 +11,6 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 import java.io.IOException;
 
-import edu.wpi.first.math.trajectory.Trajectory;
-
 import frc.robot.autos.*;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
@@ -40,13 +38,11 @@ public class RobotContainer {
     private final JoystickButton decreaseSpeed = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
     private final JoystickButton runTrajectory = new JoystickButton(driver, XboxController.Button.kY.value);
 
-
     /* Subsystems */
     private final Swerve s_Swerve = new Swerve();
     private Vision vision;
 
-
-    /** The container for the robot. Contains subsystems, OI devices, and commands. 
+    /* The container for the robot. Contains subsystems, OI devices, and commands. 
      * @throws IOException*/
     public RobotContainer() throws IOException {
         s_Swerve.setDefaultCommand(

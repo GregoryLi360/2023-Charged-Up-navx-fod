@@ -34,6 +34,7 @@ import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.Constants.VisionConstants;;
 
 public class Vision extends SubsystemBase {
@@ -50,50 +51,36 @@ public class Vision extends SubsystemBase {
         );
     }
 
-    public Optional<Transform3d> getTransform() {
+    public Optional<PhotonTrackedTarget> getTarget() {
         var result = camera.getLatestResult();
         if (!result.hasTargets()) {
-            System.out.println("No targets\n");
+            System.out.println("No targets in range\n");
             return Optional.empty();
         }
 
-        PhotonTrackedTarget target = result.getBestTarget();
+        return Optional.of(result.getBestTarget());
 
-        /* Traditional distance using formula */
-        double dist = PhotonUtils.calculateDistanceToTargetMeters(
-            VisionConstants.CAMERA_HEIGHT_METERS, 
-            VisionConstants.APRILTAG_HEIGHT_METERS, 
-            VisionConstants.CAMERA_PITCH_RADIANS, 
-            Units.degreesToRadians(target.getPitch())
-        );
-
-        System.out.println("yaw: " + target.getYaw());
-        System.out.println("range: " + dist);
-        System.out.println("camera to target translation/transform: " + target.getBestCameraToTarget() + "\n");
-
-        return Optional.of(target.getBestCameraToTarget());
-    
-
+        // /* Traditional distance using formula */
+        // double dist = PhotonUtils.calculateDistanceToTargetMeters(
+        //     VisionConstants.CAMERA_HEIGHT_METERS, 
+        //     VisionConstants.APRILTAG_HEIGHT_METERS, 
+        //     VisionConstants.CAMERA_PITCH_RADIANS, 
+        //     Units.degreesToRadians(target.getPitch())
+        // );
     }
 
-    public Optional<Trajectory> getTrajectory(TrajectoryConfig config, double coefficient) {
-        var res = this.getTransform();
-        if (res.isEmpty()) {
-            DriverStation.reportWarning("No vision targets in range", false);
-            return Optional.empty();
-        }
-
-        Transform3d transform = res.get();
+    public Optional<Trajectory> getTrajectory(PhotonTrackedTarget target) {
+        TrajectoryConfig config = Constants.Trajectory.CONFIG;
+        double coefficient = Constants.Trajectory.COEFFICIENT;
+        Transform3d transform = target.getBestCameraToTarget().plus(Constants.VisionConstants.ROBOT_TO_CAMERA.inverse());
         Translation2d end = transform.getTranslation().toTranslation2d().minus(new Translation2d(0.5, 0)).times(coefficient);
 
         /* Pose2d start, List<Translation2D> pathPoints, Pose2d end, config */
         return Optional.of(TrajectoryGenerator.generateTrajectory(
             new Pose2d(0, 0, new Rotation2d(0)),
             List.of(end.div(2)),
-            new Pose2d(end, transform.getRotation().toRotation2d().times(-1)),
+            new Pose2d(end, transform.getRotation().toRotation2d()),
             config
         ));
-
-        
     }
 }
