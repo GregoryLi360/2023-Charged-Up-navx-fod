@@ -38,21 +38,27 @@ import frc.robot.Constants;
 import frc.robot.Constants.VisionConstants;;
 
 public class Vision extends SubsystemBase {
-    private PhotonCamera camera;
+    private PhotonCamera apriltagCamera, reflectiveTapeCamera;
     private PhotonPoseEstimator poseEstimator;
 
+    private static enum Pipeline {
+        AprilTag,
+        ReflectiveTape
+    };
+
     public Vision() throws IOException {
-        camera = new PhotonCamera(VisionConstants.CAMERA_NAME);
+        apriltagCamera = new PhotonCamera(VisionConstants.APRIL_TAG_CAMERA_NAME);
+        reflectiveTapeCamera = new PhotonCamera(VisionConstants.REFLECTIVE_TAPE_CAMERA_NAME);
         poseEstimator = new PhotonPoseEstimator(
             VisionConstants.APRIL_TAG_FIELD_LAYOUT,
             PoseStrategy.LOWEST_AMBIGUITY, 
-            camera, 
+            apriltagCamera, 
             VisionConstants.ROBOT_TO_CAMERA
         );
     }
 
-    public Optional<PhotonTrackedTarget> getTarget() {
-        var result = camera.getLatestResult();
+    public Optional<PhotonTrackedTarget> getAprilTag() {
+        var result = apriltagCamera.getLatestResult();
         if (!result.hasTargets()) {
             System.out.println("No targets in range\n");
             return Optional.empty();
@@ -67,6 +73,16 @@ public class Vision extends SubsystemBase {
         //     VisionConstants.CAMERA_PITCH_RADIANS, 
         //     Units.degreesToRadians(target.getPitch())
         // );
+    }
+
+    public Optional<PhotonTrackedTarget> getReflectiveTape() {
+        var result = reflectiveTapeCamera.getLatestResult();
+        if (!result.hasTargets()) {
+            System.out.println("No targets in range\n");
+            return Optional.empty();
+        }
+
+        return Optional.of(result.getBestTarget());
     }
 
     public Optional<Trajectory> getTrajectory(PhotonTrackedTarget target) {

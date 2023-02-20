@@ -26,8 +26,15 @@ import frc.lib.util.SwerveModuleConstants;
 public final class Constants {
     public static final double stickDeadband = 0.1;
     
+    public static class ElevatorConstants{
+        public static final int liftID = 0;
+        public static final int extension1ID = 0;
+        public static final int extension2ID = 0;
+    }
+
     public static class VisionConstants {
-        public static final String CAMERA_NAME = "Limelight1";
+        public static final String APRIL_TAG_CAMERA_NAME = "Limelight1";
+        public static final String REFLECTIVE_TAPE_CAMERA_NAME = "photonvision_reflectivetape";
 
         public static final double CAMERA_HEIGHT_METERS = 0;
         public static final double APRILTAG_HEIGHT_METERS = 0.6;

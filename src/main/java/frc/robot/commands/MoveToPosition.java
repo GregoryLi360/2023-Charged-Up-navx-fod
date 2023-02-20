@@ -48,32 +48,25 @@ public class MoveToPosition extends CommandBase {
     
     @Override
     public void execute() {
-        // System.out.println("Waiting for trajectory");
+        System.out.println("Waiting for trajectory");
         
-        // var optionalTarget = vision.getTarget();
-        // if (optionalTarget.isEmpty()) {
-        //     return;
-        // }
-        // PhotonTrackedTarget target = optionalTarget.get();
+        var optionalTarget = vision.getAprilTag();
+        if (optionalTarget.isEmpty()) {
+            return;
+        }
+        PhotonTrackedTarget target = optionalTarget.get();
         
-        // var toTargetTrajectory = vision.getTrajectory(target);
-        // if (toTargetTrajectory.isEmpty()) {
-        //     System.err.println("Unable to generate trajectory");
-        //     return;
-        // }
+        var toTargetTrajectory = vision.getTrajectory(target);
+        if (toTargetTrajectory.isEmpty()) {
+            System.err.println("Unable to generate trajectory");
+            return;
+        }
 
-        // System.out.println("Has trajectory");
-        // Trajectory teleopTrajectory = toTargetTrajectory.get();
+        System.out.println("Has trajectory");
+        Trajectory teleopTrajectory = toTargetTrajectory.get();
 
         
         System.out.println("Running Teleop Trajectory.");
-
-        Trajectory teleopTrajectory = TrajectoryGenerator.generateTrajectory(
-            new Pose2d(0, 0 ,new Rotation2d(0, 0)),
-            List.of(new Translation2d(0, 0)),
-            new Pose2d(0, 0, new Rotation2d(Math.PI)),
-            Constants.Trajectory.CONFIG
-        );
 
         var thetaController =
             new ProfiledPIDController(
